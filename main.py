@@ -22,6 +22,10 @@ app.description = " ".join([config.description, config.author, config.version])
 app.title = config.title
 tibia = Tibia()
 
+@app.get("/")
+async def root():
+    return {"message": config.title}
+
 @app.get("/tibia/news")
 async def getTibiaNews():
     return tibia.getNews()
