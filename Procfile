@@ -1,1 +1,1 @@
-web: gunicorn gametrack:app
+uvicorn main:app
