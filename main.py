@@ -7,34 +7,25 @@ from tibia import Tibia
 
 import uvicorn
 
+class Config(BaseModel):
+    host: str = "0.0.0.0"
+    port: int = 8000
+
 app = FastAPI()
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Union[bool, None] = None
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+config = Config()
+tibia = Tibia()
 
 @app.get("/tibia/news")
-def getTibiaNews():
-    tibia = Tibia()
+async def getTibiaNews():
     return tibia.getNews()
 
 @app.get("/tibia/lastnew")
-def getTibiaLastNew():
-    tibia = Tibia()
+async def getTibiaLastNew():
     return tibia.getLastNew()
 
-
+@app.get("/tibia/worlds")
+async def getTibiaWorlds():
+    return tibia.getWorlds()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=config.host, port=config.port)

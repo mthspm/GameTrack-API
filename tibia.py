@@ -1,11 +1,12 @@
 from typing import Union, List
 from pydantic import BaseModel
 
-from bs4 import BeautifulSoup, ResultSet
+from bs4 import BeautifulSoup, ResultSet, Tag, NavigableString
 import requests
 import re
 import json
 
+import sys
 import os
 import time
 
@@ -21,18 +22,25 @@ class Notice(BaseModel):
     content: str
     image: str
     figures: List[str] = []
+    
+class World(BaseModel):
+    name: str
+    online: str
+    location: str
+    pvp_type: str
+    info: str
 
 class Tibia:
     def __init__(self):
         self.pages : Pages = Pages()
         
-    def exctract_news_page(self) -> ResultSet:
+    def extractNewsPage(self) -> Union[Tag, NavigableString, None]:
         response = requests.get(self.pages.news)
         soup = BeautifulSoup(response.text, "html.parser")
         news = soup.find("div", {"id": "News"}).find("div", {"class": "BoxContent"})
         return news
         
-    def extract_notice_data(self, headline_tag, table_tag=None) -> Notice:
+    def extractNoticeData(self, headline_tag, table_tag=None) -> Notice:
         title = headline_tag.find("p").text
         timestamp = headline_tag.find("div", {"class": "NewsHeadlineDate"}).text.replace(" - ", "")
         new_notice = Notice(title=title, timestamp=timestamp, content="", image="", figures=[])
@@ -67,13 +75,13 @@ class Tibia:
 
     def getNews(self) -> List[Notice]:
         try:
-            news = self.exctract_news_page()
+            news = self.extractNewsPage()
             news_headlines = news.find_all("div", {"class": "NewsHeadline"})
             news_tables = news.find_all("table", {"class": "NewsTable"})
             data = []
 
             for headline, table in zip(news_headlines, news_tables):
-                new_notice = self.extract_notice_data(headline, table)
+                new_notice = self.extractNoticeData(headline, table)
                 data.append(new_notice)
 
             return data
@@ -83,18 +91,41 @@ class Tibia:
 
     def getLastNew(self) -> Notice:
         try:
-            news = self.exctract_news_page()
+            news = self.extractNewsPage()
             latest_headline = news.find("div", {"class": "NewsHeadline"})
             latest_table = news.find("table", {"class": "NewsTable"})
             if latest_headline and latest_table:
-                return self.extract_notice_data(latest_headline, latest_table)
+                return self.extractNoticeData(latest_headline, latest_table)
             else:
                 return Notice(title="Error", timestamp=str(time.time()), content="No news found", image="", figures=[])
         except Exception as e:
             print(f"An error occurred: {e}")
             return Notice(title="Error", timestamp=str(time.time()), content="Error", image="", figures=[])
+        
+    def extractWorldsPage(self) -> Union[Tag, NavigableString, None]:
+        response = requests.get(self.pages.worlds)
+        soup = BeautifulSoup(response.text, "html.parser")
+        worlds = soup.find("div", {"class": "InnerTableContainer"})
+        return worlds
+    
+    def getWorlds(self) -> List[World]:
+        #* 0-World 1-Online 2-Location 3-PvP 4-BattleEye 5-AdditionalInfo
+        worlds = self.extractWorldsPage()
+        tables = worlds.find_all("table", {"class": "TableContent"})[2]
+        trs = tables.find_all("tr")
+        data = []
+        for tr in trs:
+            if tr.find(name="td"):
+                tempdata = tr.find_all("td")
+                world = World(name=tempdata[0].text, online=tempdata[1].text, location=tempdata[2].text, pvp_type=tempdata[3].text, info=tempdata[5].text)
+                data.append(world)
+                
+        data.pop(0)
+                
+        return data
     
 if __name__ == "__main__":
     tibia = Tibia()
-    news = tibia.getLastNew()
-    print(news)
+    news = tibia.getWorlds()
+    for world in news:
+        print(world.name, world.online, world.location, world.pvp_type, world.info)
