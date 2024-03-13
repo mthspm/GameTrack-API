@@ -8,11 +8,18 @@ from tibia import Tibia
 import uvicorn
 
 class Config(BaseModel):
+    title: str = "GAMETRACK API"
+    description : str = "API that tracks data from games"
+    version : str = "0.0.1"
+    author : str = "mthspm"
+    
     host: str = "0.0.0.0"
     port: int = 8000
 
-app = FastAPI()
 config = Config()
+app = FastAPI()
+app.description = " ".join([config.description, config.author, config.version])
+app.title = config.title
 tibia = Tibia()
 
 @app.get("/tibia/news")
