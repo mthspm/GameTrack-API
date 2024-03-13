@@ -14,7 +14,7 @@ class Config(BaseModel):
     author : str = "mthspm"
     
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = 10000
 
 config = Config()
 app = FastAPI()
@@ -34,5 +34,5 @@ async def getTibiaLastNew():
 async def getTibiaWorlds():
     return tibia.getWorlds()
 
-if __name__ == "__main__":
-    uvicorn.run(app, host=config.host, port=config.port)
+#if __name__ == "__main__":
+#    uvicorn.run(app, host=config.host, port=config.port)
