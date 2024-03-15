@@ -14,7 +14,23 @@ class Pages(BaseModel):
     news: str = "https://www.tibia.com/news/"
     worlds: str = "https://www.tibia.com/community/?subtopic=worlds"
     highscores: str = "https://www.tibia.com/community/?subtopic=highscores"
-    characters: str = "https://www.tibia.com/community/?subtopic=characters"
+    characters: str = "https://www.tibia.com/community/?name="
+    
+class Character(BaseModel):
+    name: str
+    title: str = ""
+    sex: str = ""
+    vocation: str = ""
+    level: int = 0
+    achievement_points: int = 0
+    world: str = ""
+    residence: str = ""
+    married_to: str = ""
+    house: str = ""
+    guild_membership: str = ""
+    lastlogin: str = ""
+    comment: str = ""
+    account_status: str = ""
     
 class Notice(BaseModel):
     title: str
@@ -124,8 +140,23 @@ class Tibia:
                 
         return data
     
+    def getCharacter(self, character) -> Union[Character,None]:
+        url = self.pages.characters + character
+        soup = BeautifulSoup(requests.get(url).text, "html.parser")
+        mainboxcontent = soup.find("div", {"class": "BoxContent"})
+        table = mainboxcontent.find("table", {"class": "TableContent"})
+        char = Character(name=character)
+        for tr in table.find_all("tr"):
+            label = tr.find("td", {"class": "LabelV175"})
+            if label:
+                attrName = label.text.strip().lower().replace(":","").replace(" ","_")
+                value = tr.findNext("td")
+                if value:
+                    setattr(char, attrName, value.text.strip())
+                    
+        return char
+    
 if __name__ == "__main__":
     tibia = Tibia()
-    news = tibia.getWorlds()
-    for world in news:
-        print(world.name, world.online, world.location, world.pvp_type, world.info)
+    news = tibia.getCharacter("Divepu Paladino Supremo")
+    print(news)
