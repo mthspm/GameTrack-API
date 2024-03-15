@@ -51,7 +51,10 @@ class Tibia:
         self.pages : Pages = Pages()
         
     def extractNewsPage(self) -> Union[Tag, NavigableString, None]:
-        response = requests.get(self.pages.news)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
+        response = requests.get(self.pages.news, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
         news = soup.find("div", {"id": "News"}).find("div", {"class": "BoxContent"})
         return news
@@ -119,7 +122,10 @@ class Tibia:
             return Notice(title="Error", timestamp=str(time.time()), content="Error", image="", figures=[])
         
     def extractWorldsPage(self) -> Union[Tag, NavigableString, None]:
-        response = requests.get(self.pages.worlds)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
+        response = requests.get(self.pages.worlds, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
         worlds = soup.find("div", {"class": "InnerTableContainer"})
         return worlds

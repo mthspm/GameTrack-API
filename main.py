@@ -37,3 +37,6 @@ async def getTibiaLastNew():
 @app.get("/tibia/worlds")
 async def getTibiaWorlds():
     return tibia.getWorlds()
+
+if __name__ == "__main__":
+    uvicorn.run(app, host=config.host, port=config.port)
